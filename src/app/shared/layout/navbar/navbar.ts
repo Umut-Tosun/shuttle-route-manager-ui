@@ -1,7 +1,6 @@
-import { Component, output, effect } from '@angular/core';
+import { Component, output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../../core/services/auth.service';
-import { ThemeService } from '../../../core/services/theme.service';
 
 @Component({
   selector: 'app-navbar',
@@ -15,14 +14,8 @@ export class NavbarComponent {
   isUserMenuOpen = false;
   
   constructor(
-    public authService: AuthService,
-    public themeService: ThemeService
-  ) {
-    // Signal değişikliklerini takip et
-    effect(() => {
-      console.log('Dark mode:', this.themeService.isDarkMode());
-    });
-  }
+    public authService: AuthService
+  ) {}
 
   onToggleSidebar(): void {
     this.toggleSidebar.emit();
