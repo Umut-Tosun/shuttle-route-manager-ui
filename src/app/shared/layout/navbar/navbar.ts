@@ -1,4 +1,4 @@
-import { Component, output } from '@angular/core';
+import { Component, output, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../../core/services/auth.service';
 import { ThemeService } from '../../../core/services/theme.service';
@@ -17,7 +17,12 @@ export class NavbarComponent {
   constructor(
     public authService: AuthService,
     public themeService: ThemeService
-  ) {}
+  ) {
+    // Signal değişikliklerini takip et
+    effect(() => {
+      console.log('Dark mode:', this.themeService.isDarkMode());
+    });
+  }
 
   onToggleSidebar(): void {
     this.toggleSidebar.emit();
