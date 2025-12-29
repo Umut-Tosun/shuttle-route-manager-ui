@@ -1,10 +1,28 @@
 @import "tailwindcss";
 
-/* Dark mode için color-scheme ayarı */
+/* Tailwind CSS v4: Dark mode için class selector tanımı */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* Light mode için color-scheme ayarı */
 :root {
   color-scheme: light;
 }
 
+/* Dark mode için color-scheme ayarı */
 :root.dark {
   color-scheme: dark;
+}
+
+/* Dark mode background transition */
+html {
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Body dark mode stilleri */
+body {
+  @apply bg-white text-gray-900;
+}
+
+html.dark body {
+  @apply bg-gray-900 text-white;
 }

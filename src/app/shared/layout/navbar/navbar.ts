@@ -1,6 +1,7 @@
 import { Component, output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../../core/services/auth.service';
+import { ThemeService } from '../../../core/services/theme.service';
 
 @Component({
   selector: 'app-navbar',
@@ -14,7 +15,8 @@ export class NavbarComponent {
   isUserMenuOpen = false;
   
   constructor(
-    public authService: AuthService
+    public authService: AuthService,
+    public themeService: ThemeService
   ) {}
 
   onToggleSidebar(): void {
@@ -27,5 +29,9 @@ export class NavbarComponent {
 
   onLogout(): void {
     this.authService.logout();
+  }
+
+  toggleTheme(): void {
+    this.themeService.toggleTheme();
   }
 }
