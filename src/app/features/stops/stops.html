@@ -1,1 +1,635 @@
-<p>stops works!</p>
+<!-- route-stops.html -->
+<div class="space-y-6">
+  <!-- Header -->
+  <div class="flex items-center justify-between">
+    <div>
+      <h1 class="text-3xl font-bold text-gray-800 dark:text-white">Duraklar</h1>
+      <p class="text-gray-600 dark:text-gray-400 mt-1">Tüm durakları görüntüleyin ve yönetin</p>
+    </div>
+    <button (click)="openAddModal()" 
+            [disabled]="isLoading"
+            class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+      </svg>
+      Yeni Durak
+    </button>
+  </div>
+
+  <!-- Filter Section -->
+  <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-4">
+    <div class="flex items-center gap-4">
+      <div class="flex-1">
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+          Rotaya Göre Filtrele
+        </label>
+        <select 
+          [(ngModel)]="selectedRouteFilter"
+          (change)="onFilterChange()"
+          class="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-gray-800 dark:text-white transition">
+          <option value="">Tüm Rotalar</option>
+          <option *ngFor="let route of routes" [value]="route.id">
+            {{ route.name }}
+          </option>
+        </select>
+      </div>
+      <div class="pt-7">
+        <button *ngIf="selectedRouteFilter"
+                (click)="clearFilter()"
+                class="px-4 py-2.5 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-white rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition flex items-center gap-2">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+          Filtreyi Temizle
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Success Message -->
+  <div *ngIf="successMessage && !isModalOpen && !isDetailModalOpen" 
+       class="bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-800 text-green-700 dark:text-green-400 px-4 py-3 rounded-lg flex items-center gap-2 animate-fade-in">
+    <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+    </svg>
+    <span>{{ successMessage }}</span>
+  </div>
+
+  <!-- Error Message -->
+  <div *ngIf="errorMessage && !isModalOpen && !isDetailModalOpen" 
+       class="bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 px-4 py-3 rounded-lg flex items-center gap-2">
+    <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+    </svg>
+    <span>{{ errorMessage }}</span>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="isLoading && !isModalOpen" class="flex justify-center items-center py-12">
+    <div class="flex flex-col items-center gap-3">
+      <svg class="animate-spin h-10 w-10 text-blue-600" fill="none" viewBox="0 0 24 24">
+        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+      </svg>
+      <p class="text-gray-600 dark:text-gray-400">Yükleniyor...</p>
+    </div>
+  </div>
+
+  <!-- Route Stops Table -->
+  <div *ngIf="!isLoading" 
+       class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
+    <div class="overflow-x-auto">
+      <table class="w-full">
+        <thead class="bg-gray-50 dark:bg-gray-700/50 border-b border-gray-200 dark:border-gray-700">
+          <tr>
+            <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
+              Sıra
+            </th>
+            <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
+              Rota
+            </th>
+            <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
+              Adres
+            </th>
+            <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
+              İlçe / Şehir
+            </th>
+            <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
+              GPS Koordinatları
+            </th>
+            <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
+              Sabah Saati
+            </th>
+            <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
+              Akşam Saati
+            </th>
+            <th class="px-6 py-4 text-right text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
+              İşlemler
+            </th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+          <tr *ngFor="let stop of filteredRouteStops" 
+              class="hover:bg-gray-50 dark:hover:bg-gray-700/30 transition">
+            <!-- Sıra -->
+            <td class="px-6 py-4">
+              <div class="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
+                <span class="text-lg font-bold text-blue-600 dark:text-blue-400">{{ stop.sequenceNumber }}</span>
+              </div>
+            </td>
+
+            <!-- Rota -->
+            <td class="px-6 py-4">
+              <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-orange-100 dark:bg-orange-900/30 text-orange-800 dark:text-orange-400">
+                {{ stop.route?.name || getRouteName(stop.routeId) }}
+              </span>
+            </td>
+
+            <!-- Adres -->
+            <td class="px-6 py-4">
+              <p class="text-sm font-medium text-gray-800 dark:text-white max-w-xs truncate">{{ stop.address }}</p>
+            </td>
+
+            <!-- İlçe / Şehir -->
+            <td class="px-6 py-4">
+              <p class="text-sm text-gray-600 dark:text-gray-400">{{ stop.district }}</p>
+              <p class="text-xs text-gray-500 dark:text-gray-500">{{ stop.city }}</p>
+            </td>
+
+            <!-- GPS Koordinatları -->
+            <td class="px-6 py-4">
+              <div class="flex flex-col gap-1 text-xs font-mono">
+                <span class="text-gray-600 dark:text-gray-400">{{ stop.latitude }}</span>
+                <span class="text-gray-600 dark:text-gray-400">{{ stop.longitude }}</span>
+              </div>
+            </td>
+
+            <!-- Sabah Saati -->
+            <td class="px-6 py-4">
+              <div class="flex items-center gap-2">
+                <svg class="w-4 h-4 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>
+                </svg>
+                <span class="text-sm font-medium text-gray-800 dark:text-white">{{ formatTime(stop.estimatedArrivalTimeMorning) }}</span>
+              </div>
+            </td>
+
+            <!-- Akşam Saati -->
+            <td class="px-6 py-4">
+              <div class="flex items-center gap-2">
+                <svg class="w-4 h-4 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>
+                </svg>
+                <span class="text-sm font-medium text-gray-800 dark:text-white">{{ formatTime(stop.estimatedArrivalTimeEvening) }}</span>
+              </div>
+            </td>
+
+            <!-- İşlemler -->
+            <td class="px-6 py-4 text-right">
+              <div class="flex items-center justify-end gap-2">
+                <button (click)="openDetailModal(stop)"
+                        [disabled]="isLoading"
+                        class="p-2 text-green-600 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/30 rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed"
+                        title="Haritada Göster">
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                  </svg>
+                </button>
+                <button (click)="openEditModal(stop)"
+                        [disabled]="isLoading"
+                        class="p-2 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed"
+                        title="Düzenle">
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                  </svg>
+                </button>
+                <button (click)="openDeleteModal(stop)"
+                        [disabled]="isLoading"
+                        class="p-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed"
+                        title="Sil">
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                  </svg>
+                </button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Empty State -->
+    <div *ngIf="filteredRouteStops.length === 0" 
+         class="text-center py-12">
+      <svg class="w-16 h-16 text-gray-400 dark:text-gray-600 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+      </svg>
+      <h3 class="text-lg font-medium text-gray-800 dark:text-white mb-2">
+        {{ selectedRouteFilter ? 'Bu rotada durak yok' : 'Henüz durak yok' }}
+      </h3>
+      <p class="text-gray-600 dark:text-gray-400 mb-4">
+        {{ selectedRouteFilter ? 'Bu rota için ilk durağı ekleyin' : 'İlk durağınızı ekleyerek başlayın' }}
+      </p>
+      <button (click)="openAddModal()" 
+              class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
+        Durak Ekle
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Add/Edit Modal with Map -->
+<div *ngIf="isModalOpen" 
+     class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+  <div class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-6xl w-full h-[90vh] flex flex-col">
+    
+    <!-- Modal Header -->
+    <div class="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700 flex-shrink-0">
+      <h2 class="text-2xl font-bold text-gray-800 dark:text-white">
+        {{ isEditMode ? 'Durak Düzenle' : 'Yeni Durak Ekle' }}
+      </h2>
+      <button (click)="closeModal()" 
+              [disabled]="isLoading"
+              class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition disabled:opacity-50"
+              title="Kapat">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+        </svg>
+      </button>
+    </div>
+
+    <!-- Modal Body -->
+    <div class="flex-1 flex overflow-hidden">
+      <!-- Form Section -->
+      <div class="w-1/2 overflow-y-auto p-6 border-r border-gray-200 dark:border-gray-700">
+        <!-- Success Message -->
+        <div *ngIf="successMessage" 
+             class="mb-4 bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-800 text-green-700 dark:text-green-400 px-4 py-3 rounded-lg flex items-center gap-2 animate-fade-in">
+          <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+          </svg>
+          <span>{{ successMessage }}</span>
+        </div>
+
+        <!-- Error Message -->
+        <div *ngIf="errorMessage" 
+             class="mb-4 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 px-4 py-3 rounded-lg flex items-center gap-2">
+          <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          </svg>
+          <span>{{ errorMessage }}</span>
+        </div>
+
+        <form [formGroup]="routeStopForm" (ngSubmit)="onSubmit()" class="space-y-5">
+          
+          <!-- Route Selection -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Rota <span class="text-red-500">*</span>
+            </label>
+            <select 
+              formControlName="routeId"
+              class="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-gray-800 dark:text-white transition">
+              <option value="">Rota Seçiniz</option>
+              <option *ngFor="let route of routes" [value]="route.id">
+                {{ route.name }}
+              </option>
+            </select>
+            <p *ngIf="routeStopForm.get('routeId')?.invalid && routeStopForm.get('routeId')?.touched" 
+               class="text-red-500 text-xs mt-1.5 flex items-center gap-1">
+              <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+              </svg>
+              {{ getErrorMessage('routeId') }}
+            </p>
+          </div>
+
+          <!-- Sequence Number -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Sıra Numarası <span class="text-red-500">*</span>
+            </label>
+            <input 
+              type="number" 
+              formControlName="sequenceNumber"
+              min="1"
+              class="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-gray-800 dark:text-white transition"
+              placeholder="1">
+            <p *ngIf="routeStopForm.get('sequenceNumber')?.invalid && routeStopForm.get('sequenceNumber')?.touched" 
+               class="text-red-500 text-xs mt-1.5 flex items-center gap-1">
+              <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+              </svg>
+              {{ getErrorMessage('sequenceNumber') }}
+            </p>
+          </div>
+
+          <!-- City & District -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Şehir <span class="text-red-500">*</span>
+              </label>
+              <input 
+                type="text" 
+                formControlName="city"
+                class="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-gray-800 dark:text-white transition"
+                placeholder="İstanbul">
+              <p *ngIf="routeStopForm.get('city')?.invalid && routeStopForm.get('city')?.touched" 
+                 class="text-red-500 text-xs mt-1.5 flex items-center gap-1">
+                <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                </svg>
+                {{ getErrorMessage('city') }}
+              </p>
+            </div>
+
+            <div>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                İlçe <span class="text-red-500">*</span>
+              </label>
+              <input 
+                type="text" 
+                formControlName="district"
+                class="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-gray-800 dark:text-white transition"
+                placeholder="Kadıköy">
+              <p *ngIf="routeStopForm.get('district')?.invalid && routeStopForm.get('district')?.touched" 
+                 class="text-red-500 text-xs mt-1.5 flex items-center gap-1">
+                <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                </svg>
+                {{ getErrorMessage('district') }}
+              </p>
+            </div>
+          </div>
+
+          <!-- Address -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Adres <span class="text-red-500">*</span>
+            </label>
+            <textarea 
+              formControlName="address"
+              rows="3"
+              class="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-gray-800 dark:text-white transition resize-none"
+              placeholder="Tam adres bilgisi"></textarea>
+            <p *ngIf="routeStopForm.get('address')?.invalid && routeStopForm.get('address')?.touched" 
+               class="text-red-500 text-xs mt-1.5 flex items-center gap-1">
+              <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+              </svg>
+              {{ getErrorMessage('address') }}
+            </p>
+          </div>
+
+          <!-- GPS Coordinates -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              GPS Koordinatları <span class="text-red-500">*</span>
+              <span class="text-xs text-gray-500 dark:text-gray-400 font-normal ml-2">
+                (Harita üzerinde tıklayarak seçebilirsiniz)
+              </span>
+            </label>
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <input 
+                  type="number" 
+                  formControlName="latitude"
+                  step="0.000001"
+                  (change)="onManualCoordinatesChange()"
+                  class="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-gray-800 dark:text-white transition"
+                  placeholder="Enlem (Latitude)">
+                <p *ngIf="routeStopForm.get('latitude')?.invalid && routeStopForm.get('latitude')?.touched" 
+                   class="text-red-500 text-xs mt-1.5">
+                  {{ getErrorMessage('latitude') }}
+                </p>
+              </div>
+              <div>
+                <input 
+                  type="number" 
+                  formControlName="longitude"
+                  step="0.000001"
+                  (change)="onManualCoordinatesChange()"
+                  class="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-gray-800 dark:text-white transition"
+                  placeholder="Boylam (Longitude)">
+                <p *ngIf="routeStopForm.get('longitude')?.invalid && routeStopForm.get('longitude')?.touched" 
+                   class="text-red-500 text-xs mt-1.5">
+                  {{ getErrorMessage('longitude') }}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Arrival Times -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Sabah Varış Saati <span class="text-red-500">*</span>
+              </label>
+              <input 
+                type="time" 
+                formControlName="estimatedArrivalTimeMorning"
+                class="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-gray-800 dark:text-white transition">
+              <p *ngIf="routeStopForm.get('estimatedArrivalTimeMorning')?.invalid && routeStopForm.get('estimatedArrivalTimeMorning')?.touched" 
+                 class="text-red-500 text-xs mt-1.5 flex items-center gap-1">
+                <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                </svg>
+                {{ getErrorMessage('estimatedArrivalTimeMorning') }}
+              </p>
+            </div>
+
+            <div>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Akşam Varış Saati <span class="text-red-500">*</span>
+              </label>
+              <input 
+                type="time" 
+                formControlName="estimatedArrivalTimeEvening"
+                class="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-gray-800 dark:text-white transition">
+              <p *ngIf="routeStopForm.get('estimatedArrivalTimeEvening')?.invalid && routeStopForm.get('estimatedArrivalTimeEvening')?.touched" 
+                 class="text-red-500 text-xs mt-1.5 flex items-center gap-1">
+                <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                </svg>
+                {{ getErrorMessage('estimatedArrivalTimeEvening') }}
+              </p>
+            </div>
+          </div>
+
+          <!-- Action Buttons -->
+          <div class="flex items-center justify-end gap-3 pt-6 border-t border-gray-200 dark:border-gray-700">
+            <button 
+              type="button"
+              (click)="closeModal()"
+              [disabled]="isLoading"
+              class="px-6 py-2.5 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-white rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition disabled:opacity-50 disabled:cursor-not-allowed font-medium">
+              İptal
+            </button>
+            
+            <button 
+              type="submit"
+              [disabled]="isLoading || routeStopForm.invalid"
+              class="px-6 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center gap-2 font-medium">
+              <svg *ngIf="isLoading" class="animate-spin h-5 w-5" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              {{ isLoading ? 'Kaydediliyor...' : (isEditMode ? 'Güncelle' : 'Kaydet') }}
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Map Section -->
+      <div class="w-1/2 relative bg-gray-100 dark:bg-gray-900">
+        <div id="form-map" class="absolute inset-0"></div>
+        <div class="absolute top-4 left-4 right-4 bg-white dark:bg-gray-800 rounded-lg shadow-lg p-3 border border-gray-200 dark:border-gray-700">
+          <p class="text-sm text-gray-700 dark:text-gray-300 font-medium flex items-center gap-2">
+            <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            Harita üzerinde tıklayarak veya işaretçiyi sürükleyerek konum seçin
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Detail Modal (Single Stop Map) -->
+<div *ngIf="isDetailModalOpen" 
+     class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+  <div class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-4xl w-full h-[80vh] flex flex-col">
+    
+    <!-- Modal Header -->
+    <div class="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700 flex-shrink-0">
+      <div>
+        <h2 class="text-2xl font-bold text-gray-800 dark:text-white">Durak {{ selectedStop?.sequenceNumber }}</h2>
+        <p class="text-gray-600 dark:text-gray-400 text-sm mt-1">
+          {{ selectedStop?.address }}
+        </p>
+      </div>
+      <button (click)="closeDetailModal()" 
+              class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition"
+              title="Kapat">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+        </svg>
+      </button>
+    </div>
+
+    <!-- Modal Body -->
+    <div class="flex-1 flex overflow-hidden">
+      <!-- Map -->
+      <div class="flex-1 relative">
+        <div id="detail-map" class="absolute inset-0"></div>
+      </div>
+
+      <!-- Info Sidebar -->
+      <div class="w-80 border-l border-gray-200 dark:border-gray-700 overflow-y-auto bg-gray-50 dark:bg-gray-900 p-6">
+        <h3 class="text-lg font-bold text-gray-800 dark:text-white mb-4">Durak Bilgileri</h3>
+        
+        <div class="space-y-4">
+          <div>
+            <p class="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">Rota</p>
+            <p class="text-sm font-medium text-gray-800 dark:text-white">{{ selectedStop?.route?.name || getRouteName(selectedStop?.routeId || '') }}</p>
+          </div>
+
+          <div>
+            <p class="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">Adres</p>
+            <p class="text-sm font-medium text-gray-800 dark:text-white">{{ selectedStop?.address }}</p>
+          </div>
+
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <p class="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">İlçe</p>
+              <p class="text-sm font-medium text-gray-800 dark:text-white">{{ selectedStop?.district }}</p>
+            </div>
+            <div>
+              <p class="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">Şehir</p>
+              <p class="text-sm font-medium text-gray-800 dark:text-white">{{ selectedStop?.city }}</p>
+            </div>
+          </div>
+
+          <div>
+            <p class="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2">GPS Koordinatları</p>
+            <div class="bg-white dark:bg-gray-800 rounded-lg p-3 border border-gray-200 dark:border-gray-700">
+              <p class="text-xs font-mono text-gray-600 dark:text-gray-400">Lat: {{ selectedStop?.latitude }}</p>
+              <p class="text-xs font-mono text-gray-600 dark:text-gray-400 mt-1">Lng: {{ selectedStop?.longitude }}</p>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <p class="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2">Sabah</p>
+              <div class="flex items-center gap-2 bg-orange-50 dark:bg-orange-900/20 rounded-lg p-2">
+                <svg class="w-4 h-4 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>
+                </svg>
+                <span class="text-sm font-medium text-gray-800 dark:text-white">{{ formatTime(selectedStop?.estimatedArrivalTimeMorning || '') }}</span>
+              </div>
+            </div>
+            <div>
+              <p class="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2">Akşam</p>
+              <div class="flex items-center gap-2 bg-indigo-50 dark:bg-indigo-900/20 rounded-lg p-2">
+                <svg class="w-4 h-4 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>
+                </svg>
+                <span class="text-sm font-medium text-gray-800 dark:text-white">{{ formatTime(selectedStop?.estimatedArrivalTimeEvening || '') }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div *ngIf="isDeleteModalOpen" 
+     class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+  <div class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-md w-full transform transition-all">
+    
+    <!-- Modal Header -->
+    <div class="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
+      <div class="flex items-center gap-3">
+        <div class="flex-shrink-0 w-12 h-12 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center">
+          <svg class="w-6 h-6 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+          </svg>
+        </div>
+        <h2 class="text-xl font-bold text-gray-800 dark:text-white">
+          Durağı Sil
+        </h2>
+      </div>
+      <button (click)="closeDeleteModal()" 
+              [disabled]="isDeleting"
+              class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition disabled:opacity-50"
+              title="Kapat">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+        </svg>
+      </button>
+    </div>
+
+    <!-- Modal Body -->
+    <div class="p-6">
+      <p class="text-gray-600 dark:text-gray-400 mb-2">
+        <span class="font-semibold text-gray-800 dark:text-white">Durak {{ stopToDelete?.sequenceNumber }}</span>'ı 
+        silmek istediğinizden emin misiniz?
+      </p>
+      <p class="text-sm text-gray-500 dark:text-gray-500">
+        Bu işlem geri alınamaz.
+      </p>
+    </div>
+
+    <!-- Modal Footer -->
+    <div class="flex items-center justify-end gap-3 p-6 bg-gray-50 dark:bg-gray-700/50 rounded-b-xl">
+      <button 
+        type="button"
+        (click)="closeDeleteModal()"
+        [disabled]="isDeleting"
+        class="px-6 py-2.5 bg-white dark:bg-gray-700 text-gray-800 dark:text-white border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 transition disabled:opacity-50 disabled:cursor-not-allowed font-medium">
+        İptal
+      </button>
+      
+      <button 
+        type="button"
+        (click)="confirmDelete()"
+        [disabled]="isDeleting"
+        class="px-6 py-2.5 bg-red-600 text-white rounded-lg hover:bg-red-700 transition disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center gap-2 font-medium">
+        <svg *ngIf="isDeleting" class="animate-spin h-5 w-5" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+        <svg *ngIf="!isDeleting" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+        </svg>
+        {{ isDeleting ? 'Siliniyor...' : 'Evet, Sil' }}
+      </button>
+    </div>
+  </div>
+</div>

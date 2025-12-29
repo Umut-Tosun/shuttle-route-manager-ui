@@ -34,6 +34,14 @@ export const routes: Routes = [
       {
         path: 'routes',
         loadComponent: () => import('./features/routes/routes').then(m => m.RoutesComponent)
+      },
+      {
+        path: 'stops',
+        loadComponent: () => import('./features/stops/stops').then(m => m.RouteStopsComponent)
+      },
+      {
+        path: 'trips',
+        loadComponent: () => import('./features/trips/trips').then(m => m.TripsComponent)
       }
     ]
   }

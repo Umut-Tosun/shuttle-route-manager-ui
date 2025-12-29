@@ -1,1 +1,559 @@
-<p>trips works!</p>
+<!-- trips.html -->
+<div class="space-y-6">
+  <!-- Header -->
+  <div class="flex items-center justify-between">
+    <div>
+      <h1 class="text-3xl font-bold text-gray-800 dark:text-white">Seferler</h1>
+      <p class="text-gray-600 dark:text-gray-400 mt-1">Kullanıcı sefer atamalarını görüntüleyin ve yönetin</p>
+    </div>
+    <button (click)="openAddModal()" 
+            [disabled]="isLoading"
+            class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+      </svg>
+      Yeni Sefer
+    </button>
+  </div>
+
+  <!-- Filter Section -->
+  <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-4">
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <!-- Route Filter -->
+      <div>
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+          Rotaya Göre Filtrele
+        </label>
+        <select 
+          [(ngModel)]="selectedRouteFilter"
+          (change)="onFilterChange()"
+          class="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-gray-800 dark:text-white transition">
+          <option value="">Tüm Rotalar</option>
+          <option *ngFor="let route of routes" [value]="route.id">
+            {{ route.name }}
+          </option>
+        </select>
+      </div>
+
+      <!-- User Filter -->
+      <div>
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+          Kullanıcıya Göre Filtrele
+        </label>
+        <select 
+          [(ngModel)]="selectedUserFilter"
+          (change)="onFilterChange()"
+          class="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-gray-800 dark:text-white transition">
+          <option value="">Tüm Kullanıcılar</option>
+          <option *ngFor="let user of users" [value]="user.id">
+            {{ user.firstName }} {{ user.lastName }}
+          </option>
+        </select>
+      </div>
+
+      <!-- Trip Type Filter -->
+      <div>
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+          Sefer Tipine Göre Filtrele
+        </label>
+        <select 
+          [(ngModel)]="selectedTripTypeFilter"
+          (change)="onFilterChange()"
+          class="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-gray-800 dark:text-white transition">
+          <option value="">Tüm Sefer Tipleri</option>
+          <option [value]="TripType.Morning">Sabah</option>
+          <option [value]="TripType.Evening">Akşam</option>
+        </select>
+      </div>
+
+      <!-- Clear Filters -->
+      <div class="flex items-end">
+        <button *ngIf="selectedRouteFilter || selectedUserFilter || selectedTripTypeFilter"
+                (click)="clearFilters()"
+                class="w-full px-4 py-2.5 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-white rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition flex items-center justify-center gap-2">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+          Filtreleri Temizle
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Success Message -->
+  <div *ngIf="successMessage && !isModalOpen" 
+       class="bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-800 text-green-700 dark:text-green-400 px-4 py-3 rounded-lg flex items-center gap-2 animate-fade-in">
+    <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+    </svg>
+    <span>{{ successMessage }}</span>
+  </div>
+
+  <!-- Error Message -->
+  <div *ngIf="errorMessage && !isModalOpen" 
+       class="bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 px-4 py-3 rounded-lg flex items-center gap-2">
+    <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+    </svg>
+    <span>{{ errorMessage }}</span>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="isLoading && !isModalOpen" class="flex justify-center items-center py-12">
+    <div class="flex flex-col items-center gap-3">
+      <svg class="animate-spin h-10 w-10 text-blue-600" fill="none" viewBox="0 0 24 24">
+        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+      </svg>
+      <p class="text-gray-600 dark:text-gray-400">Yükleniyor...</p>
+    </div>
+  </div>
+
+  <!-- Trips Table -->
+  <div *ngIf="!isLoading" 
+       class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
+    <div class="overflow-x-auto">
+      <table class="w-full">
+        <thead class="bg-gray-50 dark:bg-gray-700/50 border-b border-gray-200 dark:border-gray-700">
+          <tr>
+            <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
+              Kullanıcı
+            </th>
+            <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
+              Rota
+            </th>
+            <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
+              Durak
+            </th>
+            <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
+              Sefer Tipi
+            </th>
+            <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
+              Geçerlilik Başlangıç
+            </th>
+            <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
+              Geçerlilik Bitiş
+            </th>
+            <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
+              Durum
+            </th>
+            <th class="px-6 py-4 text-right text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
+              İşlemler
+            </th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+          <tr *ngFor="let trip of filteredTrips" 
+              class="hover:bg-gray-50 dark:hover:bg-gray-700/30 transition">
+            <!-- Kullanıcı -->
+            <td class="px-6 py-4">
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-full bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center flex-shrink-0">
+                  <svg class="w-5 h-5 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                  </svg>
+                </div>
+                <div>
+                  <p class="font-medium text-gray-800 dark:text-white">
+                    {{ trip.appUser ? (trip.appUser.firstName + ' ' + trip.appUser.lastName) : getUserName(trip.appUserId) }}
+                  </p>
+                  <p *ngIf="trip.appUser" class="text-xs text-gray-500 dark:text-gray-400">{{ trip.appUser.email }}</p>
+                </div>
+              </div>
+            </td>
+
+            <!-- Rota -->
+            <td class="px-6 py-4">
+              <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-orange-100 dark:bg-orange-900/30 text-orange-800 dark:text-orange-400">
+                {{ trip.route?.name || getRouteName(trip.routeId) }}
+              </span>
+            </td>
+
+            <!-- Durak -->
+            <td class="px-6 py-4">
+              <div *ngIf="trip.routeStop" class="flex items-start gap-2">
+                <div class="w-6 h-6 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center flex-shrink-0">
+                  <span class="text-xs font-bold text-blue-600 dark:text-blue-400">{{ trip.routeStop.sequenceNumber }}</span>
+                </div>
+                <div>
+                  <p class="text-sm text-gray-800 dark:text-white max-w-xs truncate">{{ trip.routeStop.address }}</p>
+                  <p class="text-xs text-gray-500 dark:text-gray-400">{{ trip.routeStop.district }}, {{ trip.routeStop.city }}</p>
+                </div>
+              </div>
+              <span *ngIf="!trip.routeStop" class="text-sm text-gray-400 dark:text-gray-500">-</span>
+            </td>
+
+            <!-- Sefer Tipi -->
+            <td class="px-6 py-4">
+              <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium" 
+                    [ngClass]="getTripTypeClass(trip.tripType)">
+                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path *ngIf="trip.tripType === TripType.Morning" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>
+                  <path *ngIf="trip.tripType === TripType.Evening" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>
+                </svg>
+                {{ getTripTypeName(trip.tripType) }}
+              </span>
+            </td>
+
+            <!-- Geçerlilik Başlangıç -->
+            <td class="px-6 py-4">
+              <div class="flex items-center gap-2">
+                <svg class="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                </svg>
+                <span class="text-sm text-gray-800 dark:text-white">{{ formatDate(trip.validFrom) }}</span>
+              </div>
+            </td>
+
+            <!-- Geçerlilik Bitiş -->
+            <td class="px-6 py-4">
+              <div class="flex items-center gap-2">
+                <svg class="w-4 h-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                </svg>
+                <span class="text-sm text-gray-800 dark:text-white">{{ formatDate(trip.validUntil) }}</span>
+              </div>
+            </td>
+
+            <!-- Durum -->
+            <td class="px-6 py-4">
+              <span *ngIf="isActive(trip)" 
+                    class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400">
+                <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                </svg>
+                Aktif
+              </span>
+              <span *ngIf="!isActive(trip)" 
+                    class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-400">
+                <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+                </svg>
+                Pasif
+              </span>
+            </td>
+
+            <!-- İşlemler -->
+            <td class="px-6 py-4 text-right">
+              <div class="flex items-center justify-end gap-2">
+                <button (click)="openEditModal(trip)"
+                        [disabled]="isLoading"
+                        class="p-2 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed"
+                        title="Düzenle">
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                  </svg>
+                </button>
+                <button (click)="openDeleteModal(trip)"
+                        [disabled]="isLoading"
+                        class="p-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed"
+                        title="Sil">
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                  </svg>
+                </button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Empty State -->
+    <div *ngIf="filteredTrips.length === 0" 
+         class="text-center py-12">
+      <svg class="w-16 h-16 text-gray-400 dark:text-gray-600 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+      </svg>
+      <h3 class="text-lg font-medium text-gray-800 dark:text-white mb-2">
+        {{ (selectedRouteFilter || selectedUserFilter || selectedTripTypeFilter) ? 'Filtreye uygun sefer yok' : 'Henüz sefer yok' }}
+      </h3>
+      <p class="text-gray-600 dark:text-gray-400 mb-4">
+        {{ (selectedRouteFilter || selectedUserFilter || selectedTripTypeFilter) ? 'Farklı filtreler deneyebilirsiniz' : 'İlk seferi ekleyerek başlayın' }}
+      </p>
+      <button (click)="openAddModal()" 
+              class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
+        Sefer Ekle
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Add/Edit Modal -->
+<div *ngIf="isModalOpen" 
+     class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+  <div class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+    
+    <!-- Modal Header -->
+    <div class="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700 sticky top-0 bg-white dark:bg-gray-800 z-10">
+      <h2 class="text-2xl font-bold text-gray-800 dark:text-white">
+        {{ isEditMode ? 'Sefer Düzenle' : 'Yeni Sefer Ekle' }}
+      </h2>
+      <button (click)="closeModal()" 
+              [disabled]="isLoading"
+              class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition disabled:opacity-50"
+              title="Kapat">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+        </svg>
+      </button>
+    </div>
+
+    <!-- Modal Body -->
+    <div class="p-6">
+      <!-- Success Message -->
+      <div *ngIf="successMessage" 
+           class="mb-4 bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-800 text-green-700 dark:text-green-400 px-4 py-3 rounded-lg flex items-center gap-2 animate-fade-in">
+        <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+        </svg>
+        <span>{{ successMessage }}</span>
+      </div>
+
+      <!-- Error Message -->
+      <div *ngIf="errorMessage" 
+           class="mb-4 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 px-4 py-3 rounded-lg flex items-center gap-2">
+        <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+        </svg>
+        <span>{{ errorMessage }}</span>
+      </div>
+
+      <form [formGroup]="tripForm" (ngSubmit)="onSubmit()" class="space-y-5">
+        
+        <!-- User Selection -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            Kullanıcı <span class="text-red-500">*</span>
+          </label>
+          <select 
+            formControlName="appUserId"
+            class="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-gray-800 dark:text-white transition">
+            <option value="">Kullanıcı Seçiniz</option>
+            <option *ngFor="let user of users" [value]="user.id">
+              {{ user.firstName }} {{ user.lastName }} ({{ user.email }})
+            </option>
+          </select>
+          <p *ngIf="tripForm.get('appUserId')?.invalid && tripForm.get('appUserId')?.touched" 
+             class="text-red-500 text-xs mt-1.5 flex items-center gap-1">
+            <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+            </svg>
+            {{ getErrorMessage('appUserId') }}
+          </p>
+        </div>
+
+        <!-- Route Selection -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            Rota <span class="text-red-500">*</span>
+          </label>
+          <select 
+            formControlName="routeId"
+            (change)="onRouteChange()"
+            class="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-gray-800 dark:text-white transition">
+            <option value="">Rota Seçiniz</option>
+            <option *ngFor="let route of routes" [value]="route.id">
+              {{ route.name }}
+            </option>
+          </select>
+          <p *ngIf="tripForm.get('routeId')?.invalid && tripForm.get('routeId')?.touched" 
+             class="text-red-500 text-xs mt-1.5 flex items-center gap-1">
+            <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+            </svg>
+            {{ getErrorMessage('routeId') }}
+          </p>
+        </div>
+
+        <!-- Route Stop Selection -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            Durak <span class="text-red-500">*</span>
+          </label>
+          <select 
+            formControlName="routeStopId"
+            [disabled]="!tripForm.get('routeId')?.value"
+            class="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-gray-800 dark:text-white transition disabled:opacity-50 disabled:cursor-not-allowed">
+            <option value="">{{ tripForm.get('routeId')?.value ? 'Durak Seçiniz' : 'Önce rota seçiniz' }}</option>
+            <option *ngFor="let stop of availableStops" [value]="stop.id">
+              {{ stop.sequenceNumber }}. {{ stop.address }}
+            </option>
+          </select>
+          <p *ngIf="tripForm.get('routeStopId')?.invalid && tripForm.get('routeStopId')?.touched" 
+             class="text-red-500 text-xs mt-1.5 flex items-center gap-1">
+            <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+            </svg>
+            {{ getErrorMessage('routeStopId') }}
+          </p>
+        </div>
+
+        <!-- Trip Type -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            Sefer Tipi <span class="text-red-500">*</span>
+          </label>
+          <div class="grid grid-cols-2 gap-4">
+            <label class="relative flex items-center p-4 border-2 border-gray-300 dark:border-gray-600 rounded-lg cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition"
+                   [class.border-orange-500]="tripForm.get('tripType')?.value == TripType.Morning"
+                   [class.bg-orange-50]="tripForm.get('tripType')?.value == TripType.Morning"
+                   [class.dark:bg-orange-900/20]="tripForm.get('tripType')?.value == TripType.Morning">
+              <input type="radio" formControlName="tripType" [value]="TripType.Morning" class="sr-only">
+              <div class="flex items-center gap-3">
+                <svg class="w-8 h-8 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>
+                </svg>
+                <span class="text-sm font-medium text-gray-800 dark:text-white">Sabah Seferi</span>
+              </div>
+            </label>
+
+            <label class="relative flex items-center p-4 border-2 border-gray-300 dark:border-gray-600 rounded-lg cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition"
+                   [class.border-indigo-500]="tripForm.get('tripType')?.value == TripType.Evening"
+                   [class.bg-indigo-50]="tripForm.get('tripType')?.value == TripType.Evening"
+                   [class.dark:bg-indigo-900/20]="tripForm.get('tripType')?.value == TripType.Evening">
+              <input type="radio" formControlName="tripType" [value]="TripType.Evening" class="sr-only">
+              <div class="flex items-center gap-3">
+                <svg class="w-8 h-8 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>
+                </svg>
+                <span class="text-sm font-medium text-gray-800 dark:text-white">Akşam Seferi</span>
+              </div>
+            </label>
+          </div>
+          <p *ngIf="tripForm.get('tripType')?.invalid && tripForm.get('tripType')?.touched" 
+             class="text-red-500 text-xs mt-1.5 flex items-center gap-1">
+            <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+            </svg>
+            {{ getErrorMessage('tripType') }}
+          </p>
+        </div>
+
+        <!-- Valid From & Valid Until -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Geçerlilik Başlangıç <span class="text-red-500">*</span>
+            </label>
+            <input 
+              type="date" 
+              formControlName="validFrom"
+              class="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-gray-800 dark:text-white transition">
+            <p *ngIf="tripForm.get('validFrom')?.invalid && tripForm.get('validFrom')?.touched" 
+               class="text-red-500 text-xs mt-1.5 flex items-center gap-1">
+              <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+              </svg>
+              {{ getErrorMessage('validFrom') }}
+            </p>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Geçerlilik Bitiş <span class="text-red-500">*</span>
+            </label>
+            <input 
+              type="date" 
+              formControlName="validUntil"
+              class="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-gray-800 dark:text-white transition">
+            <p *ngIf="tripForm.get('validUntil')?.invalid && tripForm.get('validUntil')?.touched" 
+               class="text-red-500 text-xs mt-1.5 flex items-center gap-1">
+              <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+              </svg>
+              {{ getErrorMessage('validUntil') }}
+            </p>
+          </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="flex items-center justify-end gap-3 pt-6 border-t border-gray-200 dark:border-gray-700">
+          <button 
+            type="button"
+            (click)="closeModal()"
+            [disabled]="isLoading"
+            class="px-6 py-2.5 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-white rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition disabled:opacity-50 disabled:cursor-not-allowed font-medium">
+            İptal
+          </button>
+          
+          <button 
+            type="submit"
+            [disabled]="isLoading || tripForm.invalid"
+            class="px-6 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center gap-2 font-medium">
+            <svg *ngIf="isLoading" class="animate-spin h-5 w-5" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            {{ isLoading ? 'Kaydediliyor...' : (isEditMode ? 'Güncelle' : 'Kaydet') }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div *ngIf="isDeleteModalOpen" 
+     class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+  <div class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-md w-full transform transition-all">
+    
+    <!-- Modal Header -->
+    <div class="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
+      <div class="flex items-center gap-3">
+        <div class="flex-shrink-0 w-12 h-12 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center">
+          <svg class="w-6 h-6 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+          </svg>
+        </div>
+        <h2 class="text-xl font-bold text-gray-800 dark:text-white">
+          Seferi Sil
+        </h2>
+      </div>
+      <button (click)="closeDeleteModal()" 
+              [disabled]="isDeleting"
+              class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition disabled:opacity-50"
+              title="Kapat">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+        </svg>
+      </button>
+    </div>
+
+    <!-- Modal Body -->
+    <div class="p-6">
+      <p class="text-gray-600 dark:text-gray-400 mb-2">
+        Bu seferi silmek istediğinizden emin misiniz?
+      </p>
+      <p class="text-sm text-gray-500 dark:text-gray-500">
+        Bu işlem geri alınamaz.
+      </p>
+    </div>
+
+    <!-- Modal Footer -->
+    <div class="flex items-center justify-end gap-3 p-6 bg-gray-50 dark:bg-gray-700/50 rounded-b-xl">
+      <button 
+        type="button"
+        (click)="closeDeleteModal()"
+        [disabled]="isDeleting"
+        class="px-6 py-2.5 bg-white dark:bg-gray-700 text-gray-800 dark:text-white border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 transition disabled:opacity-50 disabled:cursor-not-allowed font-medium">
+        İptal
+      </button>
+      
+      <button 
+        type="button"
+        (click)="confirmDelete()"
+        [disabled]="isDeleting"
+        class="px-6 py-2.5 bg-red-600 text-white rounded-lg hover:bg-red-700 transition disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center gap-2 font-medium">
+        <svg *ngIf="isDeleting" class="animate-spin h-5 w-5" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+        <svg *ngIf="!isDeleting" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+        </svg>
+        {{ isDeleting ? 'Siliniyor...' : 'Evet, Sil' }}
+      </button>
+    </div>
+  </div>
+</div>
