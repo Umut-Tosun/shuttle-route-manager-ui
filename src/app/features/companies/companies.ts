@@ -1,4 +1,3 @@
-// companies.component.ts
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
@@ -23,6 +22,11 @@ export class CompaniesComponent implements OnInit {
   isEditMode = false;
   companyForm: FormGroup;
   selectedCompanyId: string | null = null;
+
+  // Delete confirmation state
+  isDeleteModalOpen = false;
+  companyToDelete: Company | null = null;
+  isDeleting = false;
 
   constructor(
     private companyService: CompanyService,
@@ -91,9 +95,8 @@ export class CompaniesComponent implements OnInit {
     this.isEditMode = true;
     this.selectedCompanyId = company.id;
     
-    this.companyForm.reset(); // Önce formu temizle
+    this.companyForm.reset();
     
-    // Sonra değerleri set et
     this.companyForm.patchValue({
       name: company.name,
       address: company.address,
@@ -139,7 +142,6 @@ export class CompaniesComponent implements OnInit {
     this.successMessage = '';
     this.cdr.detectChanges();
     
-    // getRawValue() kullan - bu disabled alanları da içerir
     const rawFormValue = this.companyForm.getRawValue();
     
     console.log('Raw Form Value:', rawFormValue);
@@ -226,35 +228,47 @@ export class CompaniesComponent implements OnInit {
     }
   }
 
-  onDelete(id: string): void {
-    if (confirm('Bu şirketi silmek istediğinizden emin misiniz?')) {
-      this.isLoading = true;
-      this.cdr.detectChanges();
-      
-      this.companyService.delete(id).subscribe({
-        next: (response) => {
-          if (response.isSuccess) {
-            this.successMessage = 'Şirket başarıyla silindi!';
-            this.loadCompanies();
-            setTimeout(() => {
-              this.successMessage = '';
-              this.cdr.detectChanges();
-            }, 3000);
-          } else {
-            this.errorMessage = response.message;
-          }
+  openDeleteModal(company: Company): void {
+    this.companyToDelete = company;
+    this.isDeleteModalOpen = true;
+    this.cdr.detectChanges();
+  }
+
+  closeDeleteModal(): void {
+    this.isDeleteModalOpen = false;
+    this.companyToDelete = null;
+    this.cdr.detectChanges();
+  }
+
+  confirmDelete(): void {
+    if (!this.companyToDelete) return;
+
+    this.isDeleting = true;
+    this.cdr.detectChanges();
+    
+    this.companyService.delete(this.companyToDelete.id).subscribe({
+      next: (response) => {
+        if (response.isSuccess) {
+          this.successMessage = 'Şirket başarıyla silindi!';
+          this.loadCompanies();
           
-          this.isLoading = false;
-          this.cdr.detectChanges();
-        },
-        error: (error) => {
-          this.errorMessage = error.error?.message || 'Şirket silinirken bir hata oluştu';
-          this.isLoading = false;
-          this.cdr.detectChanges();
-          console.error('Error deleting company:', error);
+          setTimeout(() => {
+            this.successMessage = '';
+            this.cdr.detectChanges();
+          }, 3000);
+        } else {
+          this.errorMessage = response.message || 'Silme işlemi başarısız';
         }
-      });
-    }
+        
+        this.isDeleting = false;
+        this.closeDeleteModal();
+      },
+      error: (error) => {
+        this.errorMessage = error.error?.message || 'Şirket silinirken bir hata oluştu';
+        this.isDeleting = false;
+        this.closeDeleteModal();
+      }
+    });
   }
 
   formatDate(date: Date | string): string {

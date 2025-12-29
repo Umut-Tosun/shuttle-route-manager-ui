@@ -20,12 +20,12 @@ export class SidebarComponent {
   isCollapsed = input<boolean>(false);
   
   menuItems: MenuItem[] = [
-    { label: 'Dashboard', icon: 'home', route: '/dashboard' },
-    { label: 'Şirketler', icon: 'building', route: '/companies' },
-    { label: 'Sürücüler', icon: 'user', route: '/drivers' },
-    { label: 'Otobüsler', icon: 'bus', route: '/buses' },
-    { label: 'Rotalar', icon: 'route', route: '/routes' },
-    { label: 'Duraklar', icon: 'map-pin', route: '/stops' },
-    { label: 'Seferler', icon: 'calendar', route: '/trips' },
-  ];
+  { label: 'Dashboard', icon: 'home', route: '/dashboard' },
+  { label: 'Şirketler', icon: 'building', route: '/companies' },
+  { label: 'Sürücüler', icon: 'user', route: '/drivers' },
+  { label: 'Servisler', icon: 'bus', route: '/buses' },  // Değişti
+  { label: 'Rotalar', icon: 'route', route: '/routes' },
+  { label: 'Duraklar', icon: 'map-pin', route: '/stops' },
+  { label: 'Seferler', icon: 'calendar', route: '/trips' },
+];
 }
