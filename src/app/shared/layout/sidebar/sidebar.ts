@@ -19,13 +19,15 @@ interface MenuItem {
 export class SidebarComponent {
   isCollapsed = input<boolean>(false);
   
-  menuItems: MenuItem[] = [
+menuItems: MenuItem[] = [
   { label: 'Dashboard', icon: 'home', route: '/dashboard' },
+  { label: 'Profilim', icon: 'user', route: '/profile' },
   { label: 'Şirketler', icon: 'building', route: '/companies' },
   { label: 'Sürücüler', icon: 'user', route: '/drivers' },
-  { label: 'Servisler', icon: 'bus', route: '/buses' },  // Değişti
+  { label: 'Servisler', icon: 'bus', route: '/buses' },
   { label: 'Rotalar', icon: 'route', route: '/routes' },
-  { label: 'Duraklar', icon: 'map-pin', route: '/stops' },
+  { label: 'Duraklar', icon: 'map-pin', route: '/stops' },  
   { label: 'Seferler', icon: 'calendar', route: '/trips' },
+  { label: 'Kullanıcılar', icon: 'user', route: '/users' },
 ];
 }

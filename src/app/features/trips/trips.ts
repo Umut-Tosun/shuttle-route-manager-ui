@@ -2,13 +2,13 @@ import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormsModule } from '@angular/forms';
 
-import { Trip, TripType } from '../../core/models/trip.model';
+import { Trip } from '../../core/models/trip.model';
 import { Route } from '../../core/models/route.model';
 import { RouteStop } from '../../core/models/route-stop.model';
-import { AppUser, UserService } from '../../core/services/user.service';
 import { TripService } from '../../core/services/trip.service';
 import { RouteService } from '../../core/services/route.service';
 import { RouteStopService } from '../../core/services/route-stop.service';
+import { AppUser, UserService } from '../../core/services/user.service';
 
 @Component({
   selector: 'app-trips',
@@ -31,7 +31,8 @@ export class TripsComponent implements OnInit {
   // Filters
   selectedRouteFilter: string = '';
   selectedUserFilter: string = '';
-  selectedTripTypeFilter: string = '';
+  selectedMorningFilter: string = ''; // all, true, false
+  selectedEveningFilter: string = ''; // all, true, false
 
   // Add/Edit Modal
   isModalOpen = false;
@@ -43,9 +44,6 @@ export class TripsComponent implements OnInit {
   isDeleteModalOpen = false;
   tripToDelete: Trip | null = null;
   isDeleting = false;
-
-  // TripType enum for template
-  TripType = TripType;
 
   constructor(
     private tripService: TripService,
@@ -59,10 +57,20 @@ export class TripsComponent implements OnInit {
       appUserId: ['', [Validators.required]],
       routeId: ['', [Validators.required]],
       routeStopId: ['', [Validators.required]],
-      tripType: ['', [Validators.required]],
+      isMorningTripActive: [false],
+      isEveningTripActive: [false],
       validFrom: ['', [Validators.required]],
       validUntil: ['', [Validators.required]]
+    }, { 
+      validators: this.atLeastOneTripTypeValidator 
     });
+  }
+
+  // Custom validator: En az bir sefer tipi seçilmeli
+  atLeastOneTripTypeValidator(group: FormGroup): {[key: string]: boolean} | null {
+    const morning = group.get('isMorningTripActive')?.value;
+    const evening = group.get('isEveningTripActive')?.value;
+    return (morning || evening) ? null : { atLeastOneTripType: true };
   }
 
   ngOnInit(): void {
@@ -158,8 +166,16 @@ export class TripsComponent implements OnInit {
       filtered = filtered.filter(trip => trip.appUserId === this.selectedUserFilter);
     }
 
-    if (this.selectedTripTypeFilter) {
-      filtered = filtered.filter(trip => trip.tripType.toString() === this.selectedTripTypeFilter);
+    if (this.selectedMorningFilter === 'true') {
+      filtered = filtered.filter(trip => trip.isMorningTripActive);
+    } else if (this.selectedMorningFilter === 'false') {
+      filtered = filtered.filter(trip => !trip.isMorningTripActive);
+    }
+
+    if (this.selectedEveningFilter === 'true') {
+      filtered = filtered.filter(trip => trip.isEveningTripActive);
+    } else if (this.selectedEveningFilter === 'false') {
+      filtered = filtered.filter(trip => !trip.isEveningTripActive);
     }
 
     this.filteredTrips = filtered;
@@ -173,7 +189,8 @@ export class TripsComponent implements OnInit {
   clearFilters(): void {
     this.selectedRouteFilter = '';
     this.selectedUserFilter = '';
-    this.selectedTripTypeFilter = '';
+    this.selectedMorningFilter = '';
+    this.selectedEveningFilter = '';
     this.applyFilters();
   }
 
@@ -181,7 +198,10 @@ export class TripsComponent implements OnInit {
   openAddModal(): void {
     this.isEditMode = false;
     this.selectedTripId = null;
-    this.tripForm.reset();
+    this.tripForm.reset({
+      isMorningTripActive: false,
+      isEveningTripActive: false
+    });
     this.availableStops = [];
     this.isModalOpen = true;
     this.errorMessage = '';
@@ -207,7 +227,8 @@ export class TripsComponent implements OnInit {
       appUserId: trip.appUserId,
       routeId: trip.routeId,
       routeStopId: trip.routeStopId,
-      tripType: trip.tripType.toString(),
+      isMorningTripActive: trip.isMorningTripActive,
+      isEveningTripActive: trip.isEveningTripActive,
       validFrom: this.formatDateForInput(trip.validFrom),
       validUntil: this.formatDateForInput(trip.validUntil)
     });
@@ -245,7 +266,8 @@ export class TripsComponent implements OnInit {
       appUserId: rawFormValue.appUserId,
       routeId: rawFormValue.routeId,
       routeStopId: rawFormValue.routeStopId,
-      tripType: parseInt(rawFormValue.tripType),
+      isMorningTripActive: rawFormValue.isMorningTripActive,
+      isEveningTripActive: rawFormValue.isEveningTripActive,
       validFrom: new Date(rawFormValue.validFrom).toISOString(),
       validUntil: new Date(rawFormValue.validUntil).toISOString()
     };
@@ -347,14 +369,11 @@ export class TripsComponent implements OnInit {
   }
 
   // Helpers
-  getTripTypeName(tripType: TripType): string {
-    return tripType === TripType.Morning ? 'Sabah' : 'Akşam';
-  }
-
-  getTripTypeClass(tripType: TripType): string {
-    return tripType === TripType.Morning 
-      ? 'bg-orange-100 dark:bg-orange-900/30 text-orange-800 dark:text-orange-400'
-      : 'bg-indigo-100 dark:bg-indigo-900/30 text-indigo-800 dark:text-indigo-400';
+  getTripTypeBadges(trip: Trip): string[] {
+    const badges: string[] = [];
+    if (trip.isMorningTripActive) badges.push('Sabah');
+    if (trip.isEveningTripActive) badges.push('Akşam');
+    return badges;
   }
 
   isActive(trip: Trip): boolean {
@@ -397,6 +416,9 @@ export class TripsComponent implements OnInit {
     const control = this.tripForm.get(fieldName);
     if (control?.hasError('required')) {
       return 'Bu alan zorunludur';
+    }
+    if (this.tripForm.hasError('atLeastOneTripType')) {
+      return 'En az bir sefer tipi seçilmelidir';
     }
     return '';
   }

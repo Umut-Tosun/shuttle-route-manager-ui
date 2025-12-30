@@ -3,7 +3,8 @@ export interface Trip {
   appUserId: string;
   routeId: string;
   routeStopId: string;
-  tripType: TripType;
+  isMorningTripActive: boolean;
+  isEveningTripActive: boolean;
   validFrom: string | Date;
   validUntil: string | Date;
   appUser?: {
@@ -30,16 +31,14 @@ export interface Trip {
   lastUpdatedDate?: string | Date;
 }
 
-export enum TripType {
-  Morning = 1,
-  Evening = 2
-}
+
 
 export interface CreateTripDto {
   appUserId: string;
   routeId: string;
   routeStopId: string;
-  tripType: TripType;
+  isMorningTripActive: boolean;
+  isEveningTripActive: boolean;
   validFrom: string;
   validUntil: string;
 }
@@ -49,7 +48,8 @@ export interface UpdateTripDto {
   appUserId: string;
   routeId: string;
   routeStopId: string;
-  tripType: TripType;
+  isMorningTripActive: boolean;
+  isEveningTripActive: boolean;
   validFrom: string;
   validUntil: string;
 }

@@ -1,0 +1,6 @@
+#dashboard-map {
+  width: 100%;
+  height: 600px;
+  position: relative;
+  z-index: 0;
+}

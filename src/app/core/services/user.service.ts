@@ -14,6 +14,42 @@ export interface AppUser {
   homeLatitude: number;
   homeLongitude: number;
   defaultRouteStopId?: string;
+  defaultRouteStop?: {
+    id: string;
+    sequenceNumber: number;
+    address: string;
+    city: string;
+    district: string;
+  };
+  createdDate?: string | Date;
+  lastUpdatedDate?: string | Date;
+}
+
+export interface RegisterUserDto {
+  firstName: string;
+  lastName: string;
+  email: string;
+  password: string;
+  phoneNumber: string;
+  homeCity: string;
+  homeDistrict: string;
+  homeAddress: string;
+  homeLatitude: number;
+  homeLongitude: number;
+  defaultRouteStopId?: string;
+}
+
+export interface UpdateUserDto {
+  id: string;
+  firstName: string;
+  lastName: string;
+  phoneNumber: string;
+  homeCity: string;
+  homeDistrict: string;
+  homeAddress: string;
+  homeLatitude: number;
+  homeLongitude: number;
+  defaultRouteStopId?: string;
 }
 
 interface ApiResponse<T> {
@@ -36,5 +72,13 @@ export class UserService {
 
   getById(id: string): Observable<ApiResponse<AppUser>> {
     return this.apiService.get<ApiResponse<AppUser>>(`${this.endpoint}/${id}`);
+  }
+
+  register(user: RegisterUserDto): Observable<ApiResponse<AppUser>> {
+    return this.apiService.post<ApiResponse<AppUser>>(`${this.endpoint}/register`, user);
+  }
+
+  update(user: UpdateUserDto): Observable<ApiResponse<AppUser>> {
+    return this.apiService.put<ApiResponse<AppUser>>(this.endpoint, user);
   }
 }
