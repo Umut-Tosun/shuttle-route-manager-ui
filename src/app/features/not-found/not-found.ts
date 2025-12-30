@@ -17,7 +17,7 @@ export class NotFoundComponent {
   ) {}
 
   goHome() {
-    this.router.navigate(['/dashboard']);
+    this.router.navigate(['']);
   }
 
   goBack() {
