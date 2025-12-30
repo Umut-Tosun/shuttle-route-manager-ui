@@ -1,19 +1,22 @@
+// app.routes.ts
 import { Routes } from '@angular/router';
 import { MainLayoutComponent } from './shared/layout/main-layout/main-layout';
+import { authGuard } from './core/guards/auth-guard';
+
 
 export const routes: Routes = [
   {
     path: '',
-    redirectTo: 'login',
-    pathMatch: 'full'
+    loadComponent: () => import('./features/landing/landing').then(m => m.LandingComponent)
   },
   {
     path: 'login',
     loadComponent: () => import('./features/auth/login/login').then(m => m.LoginComponent)
   },
   {
-    path: '',
+    path: 'app',
     component: MainLayoutComponent,
+    canActivate: [authGuard],
     children: [
       {
         path: 'dashboard',
@@ -52,5 +55,13 @@ export const routes: Routes = [
         loadComponent: () => import('./features/profile/profile').then(m => m.ProfileComponent)
       }
     ]
+  },
+  {
+    path: '404',
+    loadComponent: () => import('./features/not-found/not-found').then(m => m.NotFoundComponent)
+  },
+  {
+    path: '**',
+    redirectTo: '404'
   }
 ];

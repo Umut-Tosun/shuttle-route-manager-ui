@@ -1,0 +1,553 @@
+<!-- landing.component.html -->
+<div class="min-h-screen bg-white dark:bg-gray-900 transition-colors">
+  <!-- Header -->
+  <header class="fixed top-0 left-0 right-0 bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm border-b border-gray-200 dark:border-gray-800 z-50">
+    <nav class="container mx-auto px-6 py-4">
+      <div class="flex items-center justify-between">
+        <!-- Logo -->
+        <div class="flex items-center gap-2">
+          <div class="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
+            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/>
+            </svg>
+          </div>
+          <span class="text-xl font-bold text-gray-800 dark:text-white">Shuttle Manager</span>
+        </div>
+
+        <!-- Navigation -->
+        <div class="hidden md:flex items-center gap-8">
+          <a href="#features" class="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition">Özellikler</a>
+          <a href="#about" class="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition">Hakkımızda</a>
+          <a href="#pricing" class="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition">Fiyatlandırma</a>
+          <a href="#images" class="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition">Görseller</a>
+          <a href="#contact" class="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition">İletişim</a>
+          
+          <!-- Theme Toggle -->
+          <button (click)="toggleTheme()" 
+                  class="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition">
+            <svg *ngIf="themeService.currentTheme() === 'dark'" 
+                 class="w-5 h-5 text-gray-600 dark:text-gray-300" 
+                 fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                    d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>
+            </svg>
+            <svg *ngIf="themeService.currentTheme() === 'light'" 
+                 class="w-5 h-5 text-gray-600 dark:text-gray-300" 
+                 fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                    d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>
+            </svg>
+          </button>
+
+          <button (click)="goToLogin()" 
+                  class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium">
+            Giriş Yap
+          </button>
+        </div>
+
+        <!-- Mobile Menu Button -->
+        <button (click)="toggleMobileMenu()" class="md:hidden p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg">
+          <svg class="w-6 h-6 text-gray-600 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Mobile Menu -->
+      <div *ngIf="isMobileMenuOpen" class="md:hidden mt-4 pb-4 space-y-3">
+        <a href="#features" class="block text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition">Özellikler</a>
+        <a href="#about" class="block text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition">Hakkımızda</a>
+        <a href="#pricing" class="block text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition">Fiyatlandırma</a>
+        <a href="#contact" class="block text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition">İletişim</a>
+        <button (click)="goToLogin()" class="w-full px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium">
+          Giriş Yap
+        </button>
+      </div>
+    </nav>
+  </header>
+
+  <!-- Hero Section -->
+  <section class="pt-32 pb-20 px-6">
+    <div class="container mx-auto text-center">
+      <h1 class="text-5xl md:text-6xl font-bold text-gray-900 dark:text-white mb-6">
+        Servis Yönetimi<br/>
+        <span class="text-blue-600">Artık Çok Kolay</span>
+      </h1>
+      <p class="text-xl text-gray-600 dark:text-gray-400 mb-8 max-w-2xl mx-auto">
+        Shuttle Route Manager ile servis operasyonlarınızı kolayca yönetin. 
+        Sürücüler, rotalar, seferler ve daha fazlası tek bir platformda.
+      </p>
+      <div class="flex flex-col sm:flex-row gap-4 justify-center">
+        <button (click)="goToLogin()" 
+                class="px-8 py-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-semibold text-lg">
+          Hemen Başla
+        </button>
+        <button class="px-8 py-4 bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-white rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition font-semibold text-lg">
+          Demo İzle
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features Section -->
+  <section id="features" class="py-20 bg-gray-50 dark:bg-gray-800/50 px-6">
+    <div class="container mx-auto">
+      <div class="text-center mb-16">
+        <h2 class="text-4xl font-bold text-gray-900 dark:text-white mb-4">Özellikler</h2>
+        <p class="text-gray-600 dark:text-gray-400 text-lg">Servis yönetimini kolaylaştıran güçlü özellikler</p>
+      </div>
+
+      <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div *ngFor="let feature of features" 
+             class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 hover:shadow-md transition">
+          <div class="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center mb-4">
+            <svg class="w-6 h-6 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" [attr.d]="feature.iconPath"/>
+            </svg>
+          </div>
+          <h3 class="text-xl font-semibold text-gray-900 dark:text-white mb-2">{{ feature.title }}</h3>
+          <p class="text-gray-600 dark:text-gray-400">{{ feature.description }}</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+ 
+
+  <!-- About Section -->
+  <section id="about" class="py-20 px-6">
+    <div class="container mx-auto max-w-4xl text-center">
+      <h2 class="text-4xl font-bold text-gray-900 dark:text-white mb-6">Hakkımızda</h2>
+      <p class="text-lg text-gray-600 dark:text-gray-400 mb-6">
+        Shuttle Route Manager, servis taşımacılığı yapan şirketler için geliştirilmiş 
+        modern bir yönetim platformudur. Operasyonlarınızı dijitalleştirin, 
+        verimliliği artırın ve maliyetleri düşürün.
+      </p>
+      <p class="text-lg text-gray-600 dark:text-gray-400">
+        Yıllarca süren deneyimimizle, sektörün ihtiyaçlarını anlayarak 
+        en kullanışlı ve etkili çözümü sunuyoruz.
+      </p>
+    </div>
+  </section>
+
+  <!-- Testimonials Section -->
+  <section class="py-20 px-6 bg-gray-50 dark:bg-gray-800/50">
+    <div class="container mx-auto">
+      <div class="text-center mb-16">
+        <h2 class="text-4xl font-bold text-gray-900 dark:text-white mb-4">Müşterilerimiz Ne Diyor?</h2>
+        <p class="text-gray-600 dark:text-gray-400 text-lg">Kullanıcılarımızın deneyimlerini keşfedin</p>
+      </div>
+
+      <div class="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+        <div *ngFor="let testimonial of testimonials" 
+             class="bg-white dark:bg-gray-800 p-8 rounded-xl border border-gray-200 dark:border-gray-700">
+          <!-- Rating -->
+          <div class="flex gap-1 mb-4">
+            <svg *ngFor="let star of [1,2,3,4,5]" 
+                 class="w-5 h-5 text-yellow-400" 
+                 fill="currentColor" 
+                 viewBox="0 0 20 20">
+              <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+            </svg>
+          </div>
+
+          <!-- Message -->
+          <p class="text-gray-700 dark:text-gray-300 mb-6 italic">
+            "{{ testimonial.message }}"
+          </p>
+
+          <!-- User Info -->
+          <div class="flex items-center gap-3">
+            <div class="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center">
+              <span class="text-white font-semibold">{{ testimonial.avatar }}</span>
+            </div>
+            <div>
+              <div class="font-semibold text-gray-900 dark:text-white">{{ testimonial.name }}</div>
+              <div class="text-sm text-gray-600 dark:text-gray-400">
+                {{ testimonial.role }}, {{ testimonial.company }}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Pricing Section -->
+  <section id="pricing" class="py-20 bg-white dark:bg-gray-900 px-6">
+    <div class="container mx-auto">
+      <div class="text-center mb-16">
+        <h2 class="text-4xl font-bold text-gray-900 dark:text-white mb-4">Fiyatlandırma</h2>
+        <p class="text-gray-600 dark:text-gray-400 text-lg">İşletmenize uygun planı seçin</p>
+      </div>
+
+      <div class="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+        <div *ngFor="let plan of pricingPlans" 
+             [class.ring-2]="plan.popular"
+             [class.ring-blue-600]="plan.popular"
+             class="bg-white dark:bg-gray-800 p-8 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 hover:shadow-md transition relative">
+          <div *ngIf="plan.popular" 
+               class="absolute top-0 right-0 bg-blue-600 text-white px-3 py-1 rounded-bl-lg rounded-tr-xl text-sm font-semibold">
+            Popüler
+          </div>
+          <h3 class="text-2xl font-bold text-gray-900 dark:text-white mb-2">{{ plan.name }}</h3>
+          <div class="mb-6">
+            <span class="text-4xl font-bold text-gray-900 dark:text-white">{{ plan.price }}</span>
+            <span class="text-gray-600 dark:text-gray-400">/ay</span>
+          </div>
+          <ul class="space-y-3 mb-8">
+            <li *ngFor="let feature of plan.features" class="flex items-center gap-2 text-gray-600 dark:text-gray-400">
+              <svg class="w-5 h-5 text-green-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+              </svg>
+              {{ feature }}
+            </li>
+          </ul>
+          <button (click)="goToLogin()" 
+                  [class.bg-blue-600]="plan.popular"
+                  [class.hover:bg-blue-700]="plan.popular"
+                  [class.bg-gray-800]="!plan.popular"
+                  [class.hover:bg-gray-900]="!plan.popular"
+                  [class.dark:bg-gray-700]="!plan.popular"
+                  [class.dark:hover:bg-gray-600]="!plan.popular"
+                  class="w-full py-3 text-white rounded-lg transition font-semibold">
+            Başla
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Screenshot/Image Gallery Section -->
+  <section id="images" class="py-20 px-6 bg-gray-50 dark:bg-gray-800/50">
+    <div class="container mx-auto">
+      <div class="text-center mb-16">
+        <h2 class="text-4xl font-bold text-gray-900 dark:text-white mb-4">Platform Görünümü</h2>
+        <p class="text-gray-600 dark:text-gray-400 text-lg">Modern ve kullanıcı dostu arayüzümüz</p>
+      </div>
+
+      <div class="grid md:grid-cols-2 gap-8 max-w-6xl mx-auto">
+        <!-- Dashboard Preview -->
+        <div class="relative group overflow-hidden rounded-xl border-2 border-gray-200 dark:border-gray-700 shadow-lg hover:shadow-2xl transition cursor-pointer h-80"
+             (click)="openImageModal('https://i.hizliresim.com/5t05v5p.png', 'Dashboard', 'Tüm verilerinizi tek bakışta görün')">
+          <div class="w-full h-full bg-gray-100 dark:bg-gray-900 flex items-center justify-center">
+            <img 
+              src="https://i.hizliresim.com/5t05v5p.png" 
+              alt="Dashboard Görünümü"
+              class="w-full h-full object-cover">
+          </div>
+          <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition flex items-end p-6">
+            <div class="text-white w-full">
+              <h3 class="text-xl font-semibold mb-1">Dashboard</h3>
+              <p class="text-sm text-gray-200 mb-2">Tüm verilerinizi tek bakışta görün</p>
+              <div class="flex items-center gap-2 text-xs text-blue-200">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7"/>
+                </svg>
+                Büyütmek için tıklayın
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Route Planning Preview -->
+        <div class="relative group overflow-hidden rounded-xl border-2 border-gray-200 dark:border-gray-700 shadow-lg hover:shadow-2xl transition cursor-pointer h-80"
+             (click)="openImageModal('https://i.hizliresim.com/hfxthld.png', 'Rota Planlama', 'Optimize edilmiş rotalar oluşturun')">
+          <div class="w-full h-full bg-gray-100 dark:bg-gray-900 flex items-center justify-center">
+            <img 
+              src="https://i.hizliresim.com/hfxthld.png" 
+              alt="Rota Planlama"
+              class="w-full h-full object-cover">
+          </div>
+          <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition flex items-end p-6">
+            <div class="text-white w-full">
+              <h3 class="text-xl font-semibold mb-1">Rota Planlama</h3>
+              <p class="text-sm text-gray-200 mb-2">Optimize edilmiş rotalar oluşturun</p>
+              <div class="flex items-center gap-2 text-xs text-blue-200">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7"/>
+                </svg>
+                Büyütmek için tıklayın
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Fleet Management Preview -->
+        <div class="relative group overflow-hidden rounded-xl border-2 border-gray-200 dark:border-gray-700 shadow-lg hover:shadow-2xl transition cursor-pointer h-80"
+             (click)="openImageModal('https://i.hizliresim.com/baca2t3.png', 'Filo Yönetimi', 'Araç filosunu kolayca yönetin')">
+          <div class="w-full h-full bg-gray-100 dark:bg-gray-900 flex items-center justify-center">
+            <img 
+              src="https://i.hizliresim.com/baca2t3.png" 
+              alt="Filo Yönetimi"
+              class="w-full h-full object-cover">
+          </div>
+          <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition flex items-end p-6">
+            <div class="text-white w-full">
+              <h3 class="text-xl font-semibold mb-1">Filo Yönetimi</h3>
+              <p class="text-sm text-gray-200 mb-2">Araç filosunu kolayca yönetin</p>
+              <div class="flex items-center gap-2 text-xs text-blue-200">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7"/>
+                </svg>
+                Büyütmek için tıklayın
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Reports Preview -->
+        <div class="relative group overflow-hidden rounded-xl border-2 border-gray-200 dark:border-gray-700 shadow-lg hover:shadow-2xl transition cursor-pointer h-80"
+             (click)="openImageModal('https://i.hizliresim.com/sysgfjh.png', 'Raporlama', 'Detaylı analiz ve raporlar')">
+          <div class="w-full h-full bg-gray-100 dark:bg-gray-900 flex items-center justify-center">
+            <img 
+              src="https://i.hizliresim.com/sysgfjh.png" 
+              alt="Raporlama"
+              class="w-full h-full object-cover">
+          </div>
+          <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition flex items-end p-6">
+            <div class="text-white w-full">
+              <h3 class="text-xl font-semibold mb-1">Raporlama</h3>
+              <p class="text-sm text-gray-200 mb-2">Detaylı analiz ve raporlar</p>
+              <div class="flex items-center gap-2 text-xs text-blue-200">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7"/>
+                </svg>
+                Büyütmek için tıklayın
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Contact Section -->
+  <section id="contact" class="py-20 bg-white dark:bg-gray-900 px-6">
+    <div class="container mx-auto max-w-4xl">
+      <div class="text-center mb-12">
+        <h2 class="text-4xl font-bold text-gray-900 dark:text-white mb-4">İletişime Geçin</h2>
+        <p class="text-gray-600 dark:text-gray-400 text-lg">
+          Sorularınız için bize ulaşın, size yardımcı olmaktan mutluluk duyarız
+        </p>
+      </div>
+
+      <div class="grid md:grid-cols-2 gap-8">
+        <!-- Contact Info -->
+        <div class="space-y-6">
+          <div class="flex items-start gap-4">
+            <div class="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center flex-shrink-0">
+              <svg class="w-6 h-6 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+              </svg>
+            </div>
+            <div>
+              <h3 class="font-semibold text-gray-900 dark:text-white mb-1">E-posta</h3>
+              <p class="text-gray-600 dark:text-gray-400">info@shuttlemanager.com</p>
+              <p class="text-gray-600 dark:text-gray-400">destek@shuttlemanager.com</p>
+            </div>
+          </div>
+
+          <div class="flex items-start gap-4">
+            <div class="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center flex-shrink-0">
+              <svg class="w-6 h-6 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
+              </svg>
+            </div>
+            <div>
+              <h3 class="font-semibold text-gray-900 dark:text-white mb-1">Telefon</h3>
+              <p class="text-gray-600 dark:text-gray-400">+90 (212) 555 0 123</p>
+              <p class="text-gray-600 dark:text-gray-400">+90 (555) 123 45 67</p>
+            </div>
+          </div>
+
+          <div class="flex items-start gap-4">
+            <div class="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center flex-shrink-0">
+              <svg class="w-6 h-6 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+              </svg>
+            </div>
+            <div>
+              <h3 class="font-semibold text-gray-900 dark:text-white mb-1">Adres</h3>
+              <p class="text-gray-600 dark:text-gray-400">
+                Maslak Mahallesi, Büyükdere Caddesi<br/>
+                No: 123, Sarıyer/İstanbul
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Contact Form -->
+        <div class="bg-gray-50 dark:bg-gray-800 p-6 rounded-xl border border-gray-200 dark:border-gray-700">
+          
+          <!-- SUCCESS MESSAGE -->
+          <div *ngIf="showSuccessMessage" 
+               class="mb-6 p-4 bg-green-50 dark:bg-green-900/30 border-l-4 border-green-500 rounded-lg animate-fade-in">
+            <div class="flex items-center">
+              <svg class="w-6 h-6 text-green-500 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              </svg>
+              <div>
+                <p class="text-green-800 dark:text-green-300 font-semibold">Mesajınız Alındı!</p>
+                <p class="text-green-700 dark:text-green-400 text-sm">En kısa sürede sizinle iletişime geçeceğiz.</p>
+              </div>
+            </div>
+          </div>
+
+          <form (ngSubmit)="submitContact()" class="space-y-4">
+            <div>
+              <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                Adınız Soyadınız *
+              </label>
+              <input 
+                type="text" 
+                [(ngModel)]="contactForm.name"
+                name="name"
+                required
+                class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-800 dark:text-white"
+                placeholder="Adınız Soyadınız">
+            </div>
+
+            <div>
+              <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                E-posta *
+              </label>
+              <input 
+                type="email" 
+                [(ngModel)]="contactForm.email"
+                name="email"
+                required
+                class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-800 dark:text-white"
+                placeholder="ornek@email.com">
+            </div>
+
+            <div>
+              <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                Telefon
+              </label>
+              <input 
+                type="tel" 
+                [(ngModel)]="contactForm.phone"
+                name="phone"
+                class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-800 dark:text-white"
+                placeholder="+90 (555) 123 45 67">
+            </div>
+
+            <div>
+              <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                Mesajınız *
+              </label>
+              <textarea 
+                [(ngModel)]="contactForm.message"
+                name="message"
+                required
+                rows="4"
+                class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-800 dark:text-white resize-none"
+                placeholder="Mesajınızı buraya yazın..."></textarea>
+            </div>
+
+            <button 
+              type="submit"
+              class="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition font-semibold">
+              Gönder
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="bg-gray-900 dark:bg-gray-950 text-gray-400 py-12 px-6">
+    <div class="container mx-auto">
+      <div class="grid md:grid-cols-4 gap-8 mb-8">
+        <!-- Company Info -->
+        <div>
+          <div class="flex items-center gap-2 mb-4">
+            <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
+              <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/>
+              </svg>
+            </div>
+            <span class="text-white font-bold">Shuttle Manager</span>
+          </div>
+          <p class="text-sm">Servis yönetiminde yeni nesil çözüm</p>
+        </div>
+
+        <!-- Product -->
+        <div>
+          <h4 class="text-white font-semibold mb-4">Ürün</h4>
+          <ul class="space-y-2 text-sm">
+            <li><a href="#features" class="hover:text-white transition">Özellikler</a></li>
+            <li><a href="#pricing" class="hover:text-white transition">Fiyatlandırma</a></li>
+            <li><a href="#" class="hover:text-white transition">Güvenlik</a></li>
+          </ul>
+        </div>
+
+        <!-- Company -->
+        <div>
+          <h4 class="text-white font-semibold mb-4">Şirket</h4>
+          <ul class="space-y-2 text-sm">
+            <li><a href="#about" class="hover:text-white transition">Hakkımızda</a></li>
+            <li><a href="#" class="hover:text-white transition">Blog</a></li>
+            <li><a href="#" class="hover:text-white transition">Kariyer</a></li>
+          </ul>
+        </div>
+
+        <!-- Support -->
+        <div>
+          <h4 class="text-white font-semibold mb-4">Destek</h4>
+          <ul class="space-y-2 text-sm">
+            <li><a href="#" class="hover:text-white transition">Yardım Merkezi</a></li>
+            <li><a href="#contact" class="hover:text-white transition">İletişim</a></li>
+            <li><a href="#" class="hover:text-white transition">Gizlilik</a></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="border-t border-gray-800 pt-8 text-center text-sm">
+        <p>&copy; 2025 Shuttle Route Manager. Tüm hakları saklıdır.</p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Image Modal -->
+  <div *ngIf="isImageModalOpen" 
+       class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/90 backdrop-blur-sm"
+       (click)="closeImageModal()">
+    <div class="relative w-full max-w-6xl" (click)="$event.stopPropagation()">
+      <!-- Close Button -->
+      <button 
+        (click)="closeImageModal()"
+        class="absolute -top-12 right-0 text-white hover:text-gray-300 transition">
+        <div class="flex items-center gap-2">
+        
+          <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+        </div>
+      </button>
+
+      <!-- Image Container - SABIT BOYUT -->
+      <div class="bg-white dark:bg-gray-800 rounded-xl overflow-hidden shadow-2xl">
+        <div class="w-full h-[600px] bg-gray-100 dark:bg-gray-900 flex items-center justify-center">
+          <img 
+            *ngIf="selectedImage"
+            [src]="selectedImage.src" 
+            [alt]="selectedImage.title"
+            class="max-w-full max-h-full object-contain">
+        </div>
+        
+        <!-- Image Info -->
+        <div *ngIf="selectedImage" class="p-6 border-t border-gray-200 dark:border-gray-700">
+          <h3 class="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+            {{ selectedImage.title }}
+          </h3>
+          <p class="text-gray-600 dark:text-gray-400">
+            {{ selectedImage.description }}
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

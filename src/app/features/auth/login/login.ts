@@ -44,7 +44,7 @@ export class LoginComponent {
         .subscribe({
           next: (response) => {
             if (response.isSuccess) {
-              this.router.navigate(['/dashboard']);
+            this.router.navigate(['/app/dashboard']);
             } else {
               const errorData = response.messages?.[0];
               this.errorMessage = errorData?.message || 

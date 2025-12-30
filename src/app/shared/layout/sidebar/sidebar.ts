@@ -20,14 +20,14 @@ export class SidebarComponent {
   isCollapsed = input<boolean>(false);
   
 menuItems: MenuItem[] = [
-  { label: 'Dashboard', icon: 'home', route: '/dashboard' },
-  { label: 'Profilim', icon: 'user', route: '/profile' },
-  { label: 'Şirketler', icon: 'building', route: '/companies' },
-  { label: 'Sürücüler', icon: 'user', route: '/drivers' },
-  { label: 'Servisler', icon: 'bus', route: '/buses' },
-  { label: 'Rotalar', icon: 'route', route: '/routes' },
-  { label: 'Duraklar', icon: 'map-pin', route: '/stops' },  
-  { label: 'Seferler', icon: 'calendar', route: '/trips' },
-  { label: 'Kullanıcılar', icon: 'user', route: '/users' },
+  { label: 'Dashboard', icon: 'home', route: '/app/dashboard' },
+  { label: 'Profilim', icon: 'user', route: '/app/profile' },
+  { label: 'Şirketler', icon: 'building', route: '/app/companies' },
+  { label: 'Sürücüler', icon: 'user', route: '/app/drivers' },
+  { label: 'Servisler', icon: 'bus', route: '/app/buses' },
+  { label: 'Rotalar', icon: 'route', route: '/app/routes' },
+  { label: 'Duraklar', icon: 'map-pin', route: '/app/stops' },  
+  { label: 'Seferler', icon: 'calendar', route: '/app/trips' },
+  { label: 'Kullanıcılar', icon: 'user', route: '/app/users' },
 ];
 }
